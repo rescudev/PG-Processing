@@ -131,7 +131,7 @@ class Barra {
         textSize(20);
         textAlign(CENTER, BOTTOM);
         fill(255);  
-        text(valuesBarras[this.barId], margen + this.posXinicio + (reScaledWidth/8), height - margen - this.valorBarra - 20);
+        text(nf(valuesBarras[this.barId], 2, 2), margen + this.posXinicio + (reScaledWidth/8), height - margen - this.valorBarra - 20);
         fill(255, 0, 0);
       }else{
         fill(barColor);
