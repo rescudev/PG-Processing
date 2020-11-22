@@ -15,27 +15,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/107/three.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/js/controls/OrbitControls.js"></script>
     <script>
-
-        var renderer, scene, camera, sol, controlador_camara, tierra, luna, esfera, caja;
+        //variables definidas
+        var renderer, scene, camera, controlador_camara, tierra, luna, sol, tierra;
         var x1, y1,angulo2 = 0, angulo1 = 0, rotatorio = 0;
         function createScene() {
+            //Creamos una escena con la librería THREE
             scene = new THREE.Scene();
+            //Color del fondo de pantalla
             scene.background = new THREE.Color(new THREE.Color(0, 0, 0));
+            //Creamos una cámara y basamos el foco del ojo en el tamaño de la pantalla
             camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
+            //Creamos un renderizador
             renderer = new THREE.WebGLRenderer({ antialias: true});
+
+            //Posición inicial de la cámara
             camera.position.y = 60;
             camera.position.z = 120;
+            //Punto hacia el que mira la cámara
             camera.lookAt(0, 0, 0);
-
+            
+            //Definimos el controlador y el punto de referencia, en este caso el centro de la animación
             controlador_camara = new THREE.OrbitControls(camera, renderer.domElement);
             controlador_camara.target.set(0, 0, 0);
 
+            //Añadimos la cámara a la escena aunque al haber una sola no es realmente necesario
             scene.add(camera);
 
+            //Editamos las propiedades del renderizado en base a los píxeles de la pantalla
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize( window.innerWidth, window.innerHeight );
 
+            //definimos un foco de luz en cada esquina y eje alrededor del sol. En total 8 puntos distinto
             for(var i=-50; i<100 ; i = i+100){
                 for(var j=-50; j<100 ; j = j+100){
                     for(var k=-50; k<100 ; k = k+100){
@@ -45,44 +55,45 @@
                     }
                 }    
             }
-            
             document.body.appendChild(renderer.domElement);
 
-            var material_esfera = new THREE.MeshPhongMaterial();
-
+            //Figura del sol
+            var material_sol = new THREE.MeshPhongMaterial();
             textura_cargada = false;
-
-            var textura_esfera = new THREE.TextureLoader();
-            textura_esfera.load(
+            //Textura de la figura del sol, en el ejemplo se ha montado un servidor local en el puerto 5501
+            var textura_sol = new THREE.TextureLoader();
+            textura_sol.load(
                 'http://localhost:5501/texturas/sun.gif',
                 function(textura){
-                    material_esfera.map = textura;
+                    material_sol.map = textura;
                 }
             );
+            //Definimos el tamaño y forma de la esfera
+            var geometria_sol = new THREE.SphereGeometry( 20, 64, 64 );
+            //Definimos la figura con su geometría y material
+            sol = new THREE.Mesh(geometria_sol, material_sol);
+            scene.add(sol);
 
-            var geometria_esfera = new THREE.SphereGeometry( 20, 64, 64 );
-
-            esfera = new THREE.Mesh(geometria_esfera, material_esfera);
-            scene.add(esfera);
-
-            var material_caja = new THREE.MeshPhongMaterial();
-
-            var textura_caja = new THREE.TextureLoader();
-            textura_caja.load(
+            //Figura de la tierra
+            var material_tierra = new THREE.MeshPhongMaterial();
+            //Textura de la figura de la tierra, en el ejemplo se ha montado un servidor local en el puerto 5501
+            var textura_tierra = new THREE.TextureLoader();
+            textura_tierra.load(
                 'http://localhost:5501/texturas/tierra.jpg',
                 function(textura){
-                    material_caja.map = textura;
+                    material_tierra.map = textura;
                     textura_cargada = true;
                 }
             );
+            //Definimos el tamaño y forma de la esfera
+            var geometria_tierra = new THREE.SphereGeometry(3, 64, 64);
+            //Definimos la figura con su geometría y material
+            tierra = new THREE.Mesh(geometria_tierra, material_tierra);
+            scene.add(tierra);
 
-            var geometria_caja = new THREE.SphereGeometry(3, 64, 64);
-            caja = new THREE.Mesh(geometria_caja, material_caja);
-            caja.position.set(80, 0, 0);
-            scene.add(caja);
-
+            //Figura de la luna
             var material_luna = new THREE.MeshPhongMaterial();
-
+            //Textura de la figura de la luna, en el ejemplo se ha montado un servidor local en el puerto 5501
             var textura_luna = new THREE.TextureLoader();
             textura_luna.load(
                 'http://localhost:5501/texturas/luna.jpg',
@@ -91,44 +102,48 @@
                     textura_cargada = true;
                 }
             );
-
+            //Definimos el tamaño y forma de la esfera
             var geometria_luna = new THREE.SphereGeometry(1, 64, 64);
+            //Definimos la figura con su geometría y material
             luna = new THREE.Mesh(geometria_luna, material_luna);
-            luna.position.set(0, 0, 0);
             scene.add(luna);
         }
 
         var render = function () {
+            //Posición en los ejes x e y de la tierra, construidas mediante la fórmula de elipsis
             x1 = (80 * Math.cos(angulo1 * Math.PI / 180));
             y1 = (60 * Math.sin(angulo1 * Math.PI / 180));
-
+            //Posición en los ejes x e y de la luna, construidas mediante la fórmula de elipsis y en base a la posición de la tierra
             x2 = x1 + (10.0 * Math.cos(angulo2 * Math.PI / 180));
             y2 = y1 + (10.0 * Math.sin(angulo2 * Math.PI / 180));
 
-            caja.position.z = x1;
-            caja.position.x = y1;
+            //Definimos la posición de la tierra en el bucle y la rotamos sumando un valor en aumento a su atributo rotation
+            tierra.position.z = x1;
+            tierra.position.x = y1;
+            tierra.rotation.y = rotatorio;
 
-            caja.rotation.y = rotatorio;
-
+            //Definimos la posición de la luna en el bucle y la rotamos sumando un valor en aumento a su atributo rotation
             luna.position.z = x2;
             luna.position.x = y2;
-
             luna.rotation.y = rotatorio;
 
-            esfera.rotation.y = rotatorio;
+            //Rotamos el sol sumando un valor en aumento a su atributo rotation
+            sol.rotation.y = rotatorio;
 
+            //Esperamos a que las texturas se carguen para representar la escena
             if(textura_cargada){
                 controlador_camara.update();
                 renderer.render(scene, camera);
             }      
             requestAnimationFrame(render);    
             
-            
+            //Valores de rotación y ángulo
             rotatorio -= 0.02;
             angulo1 += 1;
             angulo2 += 3;
         };
 
+        //Llamada a los métodos 
         createScene();
         render();
     </script>
